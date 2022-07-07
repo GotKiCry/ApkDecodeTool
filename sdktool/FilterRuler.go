@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"regexp"
+	"strings"
 )
 
 type Rule struct {
@@ -56,8 +58,17 @@ func isSkip(ruleName string, targetValue string) bool {
 	}
 
 	for _, content := range ruleList {
-		if content == targetValue {
-			log.Printf("跳过 %s", targetValue)
+		matchRule := strings.Replace(content, "*", ".+", -1)
+		matchRule = strings.Replace(matchRule, "\\", "\\\\", -1)
+		matchRule = strings.Replace(matchRule, "$", "\\$", -1)
+		result, err := regexp.MatchString(matchRule, targetValue)
+		if err != nil {
+			log.Printf("Error = %s \r\n", err)
+			log.Printf("targetValue = %s,content = %s", targetValue, content)
+		}
+
+		if result {
+			log.Printf("跳过文件 %s", targetValue)
 			return true
 		}
 		continue

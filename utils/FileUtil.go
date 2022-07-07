@@ -28,3 +28,8 @@ func InitDir(filePath string) {
 	os.RemoveAll(filePath)
 	os.MkdirAll(filePath, os.ModeDir)
 }
+
+func GetFile(filePath string) *os.File {
+	file, _ := os.OpenFile(filePath, os.O_RDWR, 0666)
+	return file
+}

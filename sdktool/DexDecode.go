@@ -83,7 +83,7 @@ func copyDir(readDir string, writeDir string, ruleName string) error {
 		name := file.Name()
 
 		//跳过文件并记录R文件位置
-		if isSkip(ruleName, name) {
+		if isSkip(ruleName, readDir+"\\"+name) {
 			if strings.Index(name, "R$") != -1 {
 				paths := strings.Split(readDir, "\\")
 				var resourcePaths []string
@@ -131,7 +131,7 @@ func copyDir(readDir string, writeDir string, ruleName string) error {
 		utils.InitFile(writeDir + "\\" + name)
 		readFile, _ := os.Open(readDir + "\\" + name)
 		writeFile, _ := os.OpenFile(writeDir+"\\"+name, os.O_WRONLY, 0666)
-		log.Printf("CopyFile ===》 %s  ", writeDir+"\\"+name)
+		//log.Printf("CopyFile ===》 %s  ", writeDir+"\\"+name)
 		copyFile(readFile, writeFile)
 		readFile.Close()
 		writeFile.Close()
