@@ -43,6 +43,10 @@ func ApkDecode(apkPath string, output string) {
 		return
 	}
 
+	log.Println("生成Styleable.xml")
+
+	GenNewStyleableXml(decodeDir)
+
 	for _, file := range dir {
 		name := file.Name()
 		targetFile := decodeDir + file.Name()
@@ -123,7 +127,10 @@ func copyDir(readDir string, writeDir string, ruleName string) error {
 		}
 
 		if file.IsDir() {
-			copyDir(readDir+"\\"+name, writeDir+"\\"+name, ruleName)
+			err := copyDir(readDir+"\\"+name, writeDir+"\\"+name, ruleName)
+			if err != nil {
+				return err
+			}
 			continue
 		}
 

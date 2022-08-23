@@ -33,8 +33,8 @@ func DecodeApk(apkPath string, outputPath string) {
 
 	ext := path.Ext(apkPath)
 	decodeOutputPath := outputPath + strings.Replace(apkFile.Name(), ext, "", -1)
-	error := RunCmd("java", "-jar", apkToolPath, "d", apkPath, "--only-main-classes", "-out", decodeOutputPath)
-	if error == io.EOF {
+	err := RunCmd("java", "-jar", apkToolPath, "d", apkPath, "--only-main-classes", "-out", decodeOutputPath)
+	if err == io.EOF {
 		fmt.Println("-------------------DecodeApk结束-------------------")
 		fmt.Println("输出地址：", decodeOutputPath)
 	} else {

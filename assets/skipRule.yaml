@@ -47,7 +47,22 @@ smali:
   - com\test
   - com\supersdkbase
   - com\jjyq
-  - BuildConfig.smali
+  # - BuildConfig.smali
+  - android\*\R$anim.smali
+  - android\*\R$attr.smali
+  - android\*\R$bool.smali
+  - android\*\R$color.smali
+  - android\*\R$dimen.smali
+  - android\*\R$drawable.smali
+  - android\*\R$id.smali
+  - android\*\R$integer.smali
+  - android\*\R$layout.smali
+  - android\*\R$mipmap.smali
+  - android\*\R$string.smali
+  - android\*\R$style.smali
+  - android\*\R$styleable.smali
+  - android\*\R$xml.smali
+  - android\*\R.smali
   - com\*\R$anim.smali
   - com\*\R$attr.smali
   - com\*\R$bool.smali
