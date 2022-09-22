@@ -54,6 +54,7 @@ func DecodeStyleableSmali(values string) (map[string][]string, error) {
 			styleableMap[key] = item
 		} else {
 			items := strings.Split(styleableItem, "0x")
+			items = items[1:]
 			for _, item := range items {
 				index := strings.Index(item, "\r\n")
 				if index < 5 {
@@ -112,8 +113,9 @@ func GenNewStyleableXml(appPath string) error {
 			return fmt.Errorf("smali与smali_classes2中未找到 com.test.supersdkdemo.R$styleable.smali文件")
 		}
 	}
-
-	styleableXml := resources{}
+	//设立一个cache，在结束前被添加过的attr都会被添加到这里面来
+	attrsCache := Resources{}
+	styleableXml := Resources{}
 	//取一条styleable
 	for key, values := range styleMap {
 		//排除掉Font开头
@@ -140,14 +142,25 @@ func GenNewStyleableXml(appPath string) error {
 						//通过public中查找到attr名称获取attrs文件中的具体值
 						for index, attr := range attrXML.Attr {
 							if attr.Name == public.Name {
-								//fmt.Println(attr)
 								attrXML.Attr = append(attrXML.Attr[:index], attrXML.Attr[index+1:]...)
-								attrs = attr
-								styleable.Attr = append(styleable.Attr, attrs)
+								attrsCache.Attr = append(attrsCache.Attr, attr)
+								styleable.Attr = append(styleable.Attr, attr)
+								goto attrLoop
 							}
 						}
-					}
 
+						for _, attr := range attrsCache.Attr {
+							if attr.Name == public.Name {
+								if attr.Enum != nil {
+									attr.Enum = nil
+								}
+								attr = Attrs{Name: attr.Name}
+								styleable.Attr = append(styleable.Attr, attr)
+								goto attrLoop
+							}
+						}
+					attrLoop:
+					}
 				}
 			}
 		topLoop:
@@ -166,16 +179,17 @@ func GenNewStyleableXml(appPath string) error {
 	return nil
 }
 
-func writeFile(path string, xmlRes resources) {
+func writeFile(path string, xmlRes Resources) {
 	output, readErr := xml.MarshalIndent(&xmlRes, "", "\t")
 	if readErr != nil {
 		fmt.Println(readErr)
 	}
-	ioutil.WriteFile(path, []byte(xml.Header+string(output)), 0666)
+	_ = ioutil.WriteFile(path, []byte(xml.Header+string(output)), 0666)
+
 }
 
 // DecodeResourcesXml 解析ResourcesXML文件/**
-func DecodeResourcesXml(filePath string) (resources, error) {
+func DecodeResourcesXml(filePath string) (Resources, error) {
 	attrsFile, err := os.Open(filePath)
 	if err != nil {
 		print("Error opening ", err)
@@ -184,16 +198,16 @@ func DecodeResourcesXml(filePath string) (resources, error) {
 	builder := strings.Builder{}
 	builder.Write(attrsData)
 	//print(builder.String())
-	var v resources
+	var v Resources
 	err = xml.Unmarshal(attrsData, &v)
 	if err != nil {
 		print("Error opening ", err)
-		return resources{}, fmt.Errorf("please check file then decode")
+		return Resources{}, fmt.Errorf("please check file then decode")
 	}
 	return v, nil
 }
 
-type resources struct {
+type Resources struct {
 	Attr      []Attrs     `xml:"attr"`
 	Styleable []Styleable `xml:"declare-styleable"`
 	Public    []Public    `xml:"public"`
