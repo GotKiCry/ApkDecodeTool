@@ -4,13 +4,13 @@ import (
 	"Go_Demo2/utils"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
 )
 
-/**
+/*
+*
 Jar to smali
 */
 func jarDecode(path string) {
@@ -19,7 +19,7 @@ func jarDecode(path string) {
 
 var rFilePath []string
 
-//ApkDecode 解包APK提取文件
+// ApkDecode 解包APK提取文件
 func ApkDecode(apkPath string, output string) {
 	apkPath = strings.Replace(apkPath, "\"", "", -1)
 	output = strings.Replace(output, "\"", "", -1)
@@ -36,7 +36,7 @@ func ApkDecode(apkPath string, output string) {
 	apkFileInfo, _ := os.Stat(apkPath)
 	decodeDir := projectPath + "\\" + strings.Replace(apkFileInfo.Name(), ".apk", "", -1) + "\\"
 	log.Println("开始整合资源")
-	dir, err := ioutil.ReadDir(decodeDir)
+	dir, err := os.ReadDir(decodeDir)
 	if err != nil {
 		log.Println("文件目录打开失败，解包失败")
 		log.Fatalln(err)
@@ -77,7 +77,7 @@ func ApkDecode(apkPath string, output string) {
 }
 
 func copyDir(readDir string, writeDir string, ruleName string) error {
-	dir, err := ioutil.ReadDir(readDir)
+	dir, err := os.ReadDir(readDir)
 	if err != nil {
 		log.Fatalf("file not exist %s", readDir)
 		return err

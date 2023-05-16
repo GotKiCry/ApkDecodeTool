@@ -2,7 +2,6 @@ package sdktool
 
 import (
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
 	"log"
 	"os"
 	"regexp"
@@ -16,7 +15,7 @@ type Rule struct {
 	Smali  []string `yaml:"smali"`
 }
 
-//全局变量
+// 全局变量
 var rule *Rule
 
 // loadFilterByLocal 从本地初始化规则
@@ -24,7 +23,7 @@ func loadFilterByLocal() error {
 	localPath, _ := os.Getwd()
 	rulePath := localPath + "\\assets\\skipRule.yaml"
 	log.Println(rulePath)
-	data, readError := ioutil.ReadFile(rulePath)
+	data, readError := os.ReadFile(rulePath)
 	if readError != nil {
 		return readError
 	}

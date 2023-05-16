@@ -22,7 +22,7 @@ func SignApkV1(apkFile string, signApkFile string) {
 		fmt.Println("签名V1成功")
 		os.Rename(signApkFile, apkFile)
 		RunCmd("zipalign", "-v", "4", apkFile, apkFile+"zipalign")
-		os.RemoveAll(apkFile)
+		// os.RemoveAll(apkFile)
 		os.Rename(apkFile+"zipalign", apkFile)
 	} else {
 		fmt.Println("签名失败")
@@ -37,7 +37,7 @@ func SignApkV2(apkFile string, signApkFile string) {
 	RunCmd("zipalign", "-v", "4", apkFile, apkFile+"zipalign")
 	os.RemoveAll(apkFile)
 	os.Rename(apkFile+"zipalign", apkFile)
-	signError := RunCmd("apksigner", "sign", "--ks", signPath, "--ks-key-alias", signAlias, "--ks-pass", "pass:"+keyAliasPassword, apkFile)
+	signError := RunCmd("apksigner", "sign", "--ks", signPath, "--ks-key-alias", signAlias, "--ks-pass", "pass:"+keyAliasPassword, "--key-pass", "pass:"+keyPassword, apkFile)
 	if signError == io.EOF {
 		fmt.Println("签名V2成功")
 		os.Rename(signApkFile, apkFile)

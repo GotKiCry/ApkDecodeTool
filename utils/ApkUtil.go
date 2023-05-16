@@ -3,7 +3,6 @@ package utils
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -62,7 +61,7 @@ func BackCodeApk(codePath string, outputApkPath string, needSign bool) {
 		return
 	}
 	apkOutputPath := outputApkPath + "\\" + apkFile.Name() + ".apk"
-	error := RunCmd("java", "-jar", apkToolPath, "b", codePath, "--only-main-classes", "-out", apkOutputPath)
+	error := RunCmd("java", "-jar", apkToolPath, "b", codePath, "-use-aapt2", "-out", apkOutputPath, "api-level", "26")
 	if error == io.EOF {
 		fmt.Println("-------------------BackCodeApk结束-------------------")
 		if needSign {
@@ -98,7 +97,7 @@ func GetFileAssets(filePath string) {
 }
 
 func getFile(filePath string, localFilePath string) {
-	dir, fileNotExits := ioutil.ReadDir(filePath)
+	dir, fileNotExits := os.ReadDir(filePath)
 	if fileNotExits != nil {
 		log.Fatalf("assets不存在 %s", fileNotExits)
 		return

@@ -3,7 +3,7 @@ package sdktool
 import (
 	"encoding/xml"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"sort"
 	"strings"
@@ -16,7 +16,7 @@ func DecodeStyleableSmali(values string) (map[string][]string, error) {
 		return map[string][]string{}, fmt.Errorf("文件不存在，请检查")
 	}
 
-	all, err := ioutil.ReadAll(styleableSmali)
+	all, err := io.ReadAll(styleableSmali)
 	if err != nil {
 		print(err)
 	}
@@ -89,22 +89,24 @@ func findItem(targetStr string, strArray []string) []string {
 	return i
 }
 
-const androidFramework = "C:\\Users\\LZH\\AppData\\Local\\Android\\Sdk\\platforms\\android-32\\"
+const androidFramework = "C:\\Users\\liuzh\\AppData\\Local\\Android\\Sdk\\platforms\\android-33"
 
-const frameworkPublicXml = androidFramework + "data\\res\\values\\public.xml"
+const frameworkPublicXml = androidFramework + "\\data\\res\\values\\public-final.xml"
 
 // GenNewStyleableXml 根据系统与apk的Public.xml文件生成Styleable.xml文件 /**
 func GenNewStyleableXml(appPath string) error {
 
 	_, fileNotExist := os.Open(frameworkPublicXml)
+	fmt.Println(frameworkPublicXml)
 	if fileNotExist != nil {
+		fmt.Println("frameworkPublicXml未找到,请指定androidFramework地址")
 		return fmt.Errorf("frameworkPublicXml未找到,请指定androidFramework地址")
 	}
 
 	apkPublicXmlPath := appPath + "\\res\\values\\public.xml"
-	attrXML, _ := DecodeResourcesXml(appPath + "\\res\\values\\attrs.xml")
-	apkPublicXml, _ := DecodeResourcesXml(apkPublicXmlPath)
-	frameworkPublicXml, _ := DecodeResourcesXml(frameworkPublicXml)
+	attrXML, _ := DecoderesourcesXml(appPath + "\\res\\values\\attrs.xml")
+	apkPublicXml, _ := DecoderesourcesXml(apkPublicXmlPath)
+	frameworkPublicXml, _ := DecoderesourcesXml(frameworkPublicXml)
 
 	styleMap, err := DecodeStyleableSmali(appPath + "\\smali\\com\\test\\supersdkdemo\\R$styleable.smali")
 	if err != nil {
@@ -114,8 +116,8 @@ func GenNewStyleableXml(appPath string) error {
 		}
 	}
 	//设立一个cache，在结束前被添加过的attr都会被添加到这里面来
-	attrsCache := Resources{}
-	styleableXml := Resources{}
+	attrsCache := resources{}
+	styleableXml := resources{}
 	//取一条styleable
 	for key, values := range styleMap {
 		//排除掉Font开头
@@ -138,28 +140,30 @@ func GenNewStyleableXml(appPath string) error {
 				}
 			} else {
 				for _, public := range apkPublicXml.Public {
-					if public.Id == attrId {
-						//通过public中查找到attr名称获取attrs文件中的具体值
-						for index, attr := range attrXML.Attr {
-							if attr.Name == public.Name {
-								attrXML.Attr = append(attrXML.Attr[:index], attrXML.Attr[index+1:]...)
-								attrsCache.Attr = append(attrsCache.Attr, attr)
-								styleable.Attr = append(styleable.Attr, attr)
-								goto attrLoop
-							}
-						}
-
-						for _, attr := range attrsCache.Attr {
-							if attr.Name == public.Name {
-								if attr.Enum != nil {
-									attr.Enum = nil
+					if public.Type == "attr" {
+						if public.Id == attrId {
+							//通过public中查找到attr名称获取attrs文件中的具体值
+							for index, attr := range attrXML.Attr {
+								if attr.Name == public.Name {
+									attrXML.Attr = append(attrXML.Attr[:index], attrXML.Attr[index+1:]...)
+									attrsCache.Attr = append(attrsCache.Attr, attr)
+									styleable.Attr = append(styleable.Attr, attr)
+									goto attrLoop
 								}
-								attr = Attrs{Name: attr.Name}
-								styleable.Attr = append(styleable.Attr, attr)
-								goto attrLoop
 							}
+
+							for _, attr := range attrsCache.Attr {
+								if attr.Name == public.Name {
+									if attr.Enum != nil {
+										attr.Enum = nil
+									}
+									attr = Attrs{Name: attr.Name}
+									styleable.Attr = append(styleable.Attr, attr)
+									goto attrLoop
+								}
+							}
+						attrLoop:
 						}
-					attrLoop:
 					}
 				}
 			}
@@ -179,35 +183,35 @@ func GenNewStyleableXml(appPath string) error {
 	return nil
 }
 
-func writeFile(path string, xmlRes Resources) {
+func writeFile(path string, xmlRes resources) {
 	output, readErr := xml.MarshalIndent(&xmlRes, "", "\t")
 	if readErr != nil {
 		fmt.Println(readErr)
 	}
-	_ = ioutil.WriteFile(path, []byte(xml.Header+string(output)), 0666)
+	_ = os.WriteFile(path, []byte(xml.Header+string(output)), 0666)
 
 }
 
-// DecodeResourcesXml 解析ResourcesXML文件/**
-func DecodeResourcesXml(filePath string) (Resources, error) {
+// DecoderesourcesXml 解析resourcesXML文件/**
+func DecoderesourcesXml(filePath string) (resources, error) {
 	attrsFile, err := os.Open(filePath)
 	if err != nil {
 		print("Error opening ", err)
 	}
-	attrsData, _ := ioutil.ReadAll(attrsFile)
+	attrsData, _ := io.ReadAll(attrsFile)
 	builder := strings.Builder{}
 	builder.Write(attrsData)
 	//print(builder.String())
-	var v Resources
+	var v resources
 	err = xml.Unmarshal(attrsData, &v)
 	if err != nil {
 		print("Error opening ", err)
-		return Resources{}, fmt.Errorf("please check file then decode")
+		return resources{}, fmt.Errorf("please check file then decode")
 	}
 	return v, nil
 }
 
-type Resources struct {
+type resources struct {
 	Attr      []Attrs     `xml:"attr"`
 	Styleable []Styleable `xml:"declare-styleable"`
 	Public    []Public    `xml:"public"`
